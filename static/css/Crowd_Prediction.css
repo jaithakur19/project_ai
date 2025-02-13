@@ -1,0 +1,357 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    color: #333;
+}
+
+#status-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px auto;
+    max-width: 1200px;
+}
+
+.card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    padding: 15px;
+    text-align: center;
+}
+
+.card h2 {
+    margin: 10px 0;
+    color: #0056b3;
+}
+
+.card p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.card img {
+    border-radius: 8px;
+    height: 150px;
+    width: 100%;
+}
+
+.hour {
+    font-weight: bold;
+    color: #333;
+}
+
+.line-group {
+
+margin-bottom: 40px;
+padding: 20px;
+background-color: #f4f4f4;
+border-radius: 10px;
+border: 1px solid #ddd;
+}
+
+.line-group h2 {
+    text-align: center;
+    color: #0056b3;
+}
+
+.line-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.pdf-container {
+    position: relative;
+    margin: 0 auto;
+    width: 65%;
+    height: 700px;
+    overflow: auto; 
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #333;
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+}
+
+.pdf-container-wrapper {
+width: 80%;
+margin: 0 auto; 
+display: flex;
+flex-direction: column; 
+align-items: flex-start; 
+gap: 10px; 
+padding: 20px; 
+border: 1px solid #ddd; 
+border-radius: 8px; 
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+background-color: #f4f4f4; 
+}
+
+.pdf-container-wrapper h2 {
+text-align: center;
+font-size: 24px; 
+margin-right: auto;
+margin-left: auto;
+}
+
+.controls {
+    width: 100%; 
+}
+
+.controls button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #0056b3;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    margin-left: 10px; 
+    transition: background-color 0.3s ease;
+}
+
+.controls button:hover {
+    background-color: #0056b3;
+}
+
+.pdf-container {
+    width: 100%;
+    height: 600px;
+    overflow: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #000000;
+}
+
+.dragging {
+    cursor: grabbing !important;
+}
+
+.cardParagraph p {
+padding-top: 8px;
+}
+
+.line-header img {
+width: 100%; 
+height: 500px;
+object-fit:contain;
+border: 1px solid #ccc;
+background-color: #fff;
+margin-left: auto;
+margin-right: auto;
+}
+.scroll-to-top {
+position: fixed;
+bottom: 20px;
+right: 20px;
+background-color: #0056b3;
+color: #ffffff;
+text-align: center;
+padding: 10px 15px;
+border-radius: 5px;
+text-decoration: none;
+font-size: 14px;
+font-weight: bold;
+display: none; /* Initially hidden */
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.scroll-to-top:hover {
+background-color: #0056b3;
+text-decoration: none;
+color: #ffffff;
+}
+.search-container {
+margin: 20px auto;
+text-align: center;
+}
+
+#searchBar {
+width: 50%;
+padding: 10px;
+font-size: 16px;
+border: 1px solid #ddd;
+border-radius: 5px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lineSearchBar {
+width: 50%;
+padding: 10px;
+font-size: 16px;
+border: 1px solid #ddd;
+border-radius: 5px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);   
+}
+
+#searchResults {
+margin: 20px auto;
+max-width: 1200px;
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+gap: 20px;
+}
+
+.search-card {
+background-color: #ffffff;
+border: 1px solid #ddd;
+border-radius: 8px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+width: 300px;
+padding: 15px;
+text-align: center;
+}
+
+.search-card h2 {
+margin: 10px 0;
+color: #0056b3;
+}
+
+.operating-hours-card {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    padding: 20px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+.chat-icon {
+position: fixed;
+bottom: 30px;
+left: 20px;
+width: 60px;
+height: 60px;
+background-color: #0056b3;
+border-radius: 50%;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+z-index: 1000;
+}
+
+.chat-icon:hover {
+background-color: #003c80;
+transform: scale(1.05);
+}
+
+.chat-icon img {
+width: 30px;
+height: 30px;
+}
+
+.modal {
+position: fixed;
+bottom: 100px;
+left: 20px;
+width: 300px;
+max-height: 400px;
+background-color: white;
+border-radius: 10px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+display: none;
+flex-direction: column;
+padding: 15px;
+z-index: 1000;
+overflow: hidden;
+}
+
+.modal-header {
+font-size: 18px;
+font-weight: bold;
+margin-bottom: 10px;
+}
+
+.modal-content {
+flex: 1;
+overflow-y: auto;
+margin-bottom: 10px;
+padding: 5px;
+border: 1px solid #ddd;
+border-radius: 5px;
+background-color: #f9f9f9;
+}
+
+.modal textarea {
+    width: calc(100% - 20px); 
+    max-width: 100%; 
+    height: 80px; 
+    resize: none; 
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+
+.modal button {
+background-color: #0056b3;
+color: white;
+border: none;
+padding: 10px;
+border-radius: 5px;
+cursor: pointer;
+width: 100%;
+}
+
+.modal button:hover {
+background-color: #0056b3;
+}
+
+.close-modal {
+position: absolute;
+top: 5px;
+right: 10px;
+cursor: pointer;
+font-size: 20px;
+color: gray;
+}
+
+.close-modal:hover {
+color: black;
+}
+
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 20px; 
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: none;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    width: 60px;
+}
+
+.scroll-to-top:hover {
+    background-color: #003c80;
+    transform: scale(1.05);
+    }

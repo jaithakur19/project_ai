@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Station Status Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Crowd_Prediction.css') }}">
+
+</head>
+<body>
+    <h1 style="color: #0056b3;">Station Crowd Status for Next Hour</h1>
+    <div id="operating-status">
+    <div class="pdf-container-wrapper">
+        <h2>Interactable map of Singapore MRT</h2>
+        <div class="pdf-container" id="pdf-container">
+            <canvas id="pdf-render"></canvas>
+        </div>
+        <div class="controls">
+            <button onclick="resetZoom()">Reset</button>
+        </div>
+    </div>
+    <div class="search-container">
+        <input type="text" id="searchBar" placeholder="Search for a line... (e.g circle line)" onkeyup="filterLines()">
+    </div>
+</div>
+<p style=" text-align: center;">*Operating hours are from <b>5.30am to around midnight</b> daily</p>
+
+  <div class="chat-icon" onclick="toggleModal()">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/chat.png" alt="Chat Icon">
+  </div>
+  
+  <button id="scrollButton" class="scroll-to-top" onclick="scrollToTop()">⬆ Top</button>
+  
+  <div class="modal" id="queryModal">
+    <div class="modal-header">
+      Find out why crowds are at a certain level, powered by AI!
+      <span class="close-modal" onclick="toggleModal()">×</span>
+    </div>
+    <div class="modal-content" id="chatContent">
+      Include crowd level, time(hour only format, e.g 7:00am), day and station code/station name (e.g Dhoby Ghaut station) in your question
+    </div>
+    <textarea id="userInput" placeholder="Example: Why is Dhoby Ghaut station at crowd level medium at 6 PM on a Friday?"></textarea>
+    <button onclick="sendMessage()">Send</button>
+  </div>
+  
+
+    <div id="status-container">
+    </div>
+
+    <a href="#" id="scrollToTop" class="scroll-to-top">⬆ Back to Top</a>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="{{ url_for('static', filename='js/Crowd_Prediction.js') }}"></script>
+</body>
+</html>
