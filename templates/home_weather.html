@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Prediction</title>
+    <link rel="stylesheet" href="/static/css/Weather_prediction.css"></head>
+</head>
+<body>
+    <header>
+        <h1>🌦️ Weather Predictor</h1>
+        <div>
+            {% if session['logged_in'] %}
+                <p>Welcome, {{ session['username'] }}! <a href="{{ url_for('logout') }}" onclick="clearSession()">Logout</a>
+                </p>
+            {% else %}
+                <script>window.location.href = "login";</script>
+            {% endif %}
+        </div>
+        <script>
+            function clearSession() {
+                fetch("{{ url_for('logout') }}", { method: "GET" })
+                .then(() => {
+                    window.location.href = "{{ url_for('login') }}"; // Redirect to login page
+                });
+            }
+        </script>        
+    </header>
+
+    <section>
+        <h2>Enter Details for Weather Prediction</h2>
+
+        <!-- Weather Prediction Form (Now using action="/predict") -->
+        <form action="predict" method="POST">
+            <input type="hidden" id="email" name="email" value="{{ session['email'] }}">
+
+            <label for="city">🌍 Enter City:</label>
+            <input type="text" id="city" name="city" required>
+
+            <label for="date">📅 Select Date:</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="time">⏰ Select Time:</label>
+            <input type="time" id="time" name="time" required>
+
+            <button type="submit">📊 Predict Weather</button>
+        </form>
+    </section>
+</body>
+</html>

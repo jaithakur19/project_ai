@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, request, redirect, url_for, session, flash
 import threading
 import webbrowser
 import os
@@ -16,6 +16,13 @@ import joblib
 from scipy.spatial import KDTree
 import math
 from datetime import datetime
+import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
+import random
+from database import init_db, register_user, get_user_by_username
+from datetime import timedelta
+from datetime import datetime, timedelta
 
 def get_access_token():
     credentials = service_account.Credentials.from_service_account_file(
@@ -114,8 +121,37 @@ def process_crowd_level_prediction(station, day, hour):
 
 
        # --------------- Weather Prediction --------------- #
+app.secret_key = "weather_prediction_app"
 
+# Initialize database
+init_db()
 
+# Flask-Mail Configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your-email@gmail.com'
+app.config['MAIL_PASSWORD'] = 'your-app-password'
+app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
+
+mail = Mail(app)
+
+# Function to send email alerts
+def send_email_alert(email, message):
+    msg = Message("🌤️ Weather Alert!", recipients=[email])
+    msg.body = message
+    mail.send(msg)
+
+# Load trained XGBoost models
+models = {}
+targets = ['temp', 'precip', 'humidity', 'uvindex']
+model_dir = os.path.join(os.getcwd(), 'models' 'weather_datasets')
+
+for target in targets:
+    model_path = os.path.join(model_dir, f"xgboost_model_{target}.json")
+    if os.path.exists(model_path):
+        models[target] = xgb.Booster()
+        models[target].load_model(model_path)
 
        # --------------- Carpark Prediction --------------- #
 
@@ -164,13 +200,33 @@ feature_names = loaded_model.feature_names
 
 # ------------------ Flask API Endpoints ------------------ #
 
-@app.route('/')
-def home():
+@app.route('/crowd')
+def crowd_model():
     return render_template('Crowd_Prediction.html')  
 
 @app.route('/carpark')
 def carpark_model():
-    return render_template('index_carpark.html')  
+    return render_template('index_carpark.html') 
+
+# Route: Home Page (Protected)
+@app.route("/")
+def home():
+    return render_template("home_weather.html")
+
+app.permanent_session_lifetime = timedelta(minutes=15)
+
+@app.before_request
+def check_session_timeout():
+    if "logged_in" in session:
+        last_activity = session.get("last_activity")
+        if last_activity:
+            last_activity = datetime.strptime(last_activity, "%Y-%m-%d %H:%M:%S")
+            if (datetime.now() - last_activity).total_seconds() > 900:  # 15 minutes
+                session.clear()
+                flash("⚠️ Your session has expired. Please log in again.", "warning")
+                return redirect(url_for("login"))
+        # Update last activity timestamp
+        session["last_activity"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ------------------ Flask Server Endpoints ------------------ #
 
@@ -405,6 +461,109 @@ def webhook():
 
     else:
         return jsonify({"fulfillmentText": "Invalid request structure."}), 400
+
+# Route: Login Page
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        user = get_user_by_username(username)
+        if user and check_password_hash(user[4], password):
+            session.permanent = True
+            session['logged_in'] = True
+            session['username'] = user[2]  # Username
+            session['email'] = user[3]  # Email
+
+            flash(f"✅ Welcome, {user[1]}!", "success")
+            return redirect(url_for("home"))
+
+        flash("⚠️ Invalid username or password!", "danger")
+    
+    return render_template('login.html')
+
+# Route: Signup Page
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        fullname = request.form['fullname']
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+
+        if password != confirm_password:
+            flash("⚠️ Passwords do not match!", "danger")
+            return redirect(url_for('signup'))
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+        if register_user(fullname, username, email, hashed_password):
+            flash("✅ Sign-up successful! Please log in.", "success")
+            return redirect(url_for('login'))
+        else:
+            flash("⚠️ Username or Email already exists!", "danger")
+
+    return render_template('signup.html')
+
+# Route: Predict Weather and Show Result
+@app.route('/predict', methods=['POST'])
+def predict():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    city = request.form.get("city")
+    date = request.form.get("date")
+    time = request.form.get("time")
+    user_email = session.get("email")
+
+    if not city or not date or not time:
+        flash("⚠️ Please fill in all fields!", "danger")
+        return redirect(url_for('home'))
+
+    # Process date
+    date_obj = pd.to_datetime(date)
+    prepared_features = {
+        'year': date_obj.year,
+        'month': date_obj.month,
+        'day': date_obj.day,
+        'day_of_week': date_obj.weekday(),
+        'datetime_ordinal': date_obj.toordinal(),
+        'windspeed': 5.0,
+        'precipprob': 50.0,
+        'precipcover': 0.3,
+        'tempmax': 30.0,
+        'tempmin': 25.0
+    }
+
+    # Convert data to DataFrame
+    input_df = pd.DataFrame([prepared_features])
+    dmatrix = xgb.DMatrix(input_df)
+
+ 
+    # Generate predictions and round to 2 decimal places
+    predictions = {target: round(models[target].predict(dmatrix)[0], 2) for target in targets}
+
+    # Alert message if severe weather is predicted
+    alert_message = ""
+    if predictions['temp'] > 35:
+        alert_message += "🔥 High Temperature Warning!\n"
+    if predictions['precip'] > 50:
+        alert_message += "🌧️ Heavy Rain Warning!\n"
+
+    alert = bool(alert_message)
+    if alert:
+        send_email_alert(user_email, alert_message)
+
+    return render_template('weather_result.html', predictions=predictions, alert=alert, message=alert_message)
+
+# Route: Logout
+@app.route('/logout')
+def logout():
+    session.clear()  # Completely clears the session
+    flash("✅ Successfully logged out. Please log in again.", "success")
+    return redirect(url_for('login'))
 
 # ------------------ Auto Open Browser ------------------ #
 def open_browser():

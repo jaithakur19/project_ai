@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Results</title>
+    <link rel="stylesheet" href="/static/css/Weather_prediction.css"></head>
+</head>
+<body>
+    <header>
+        <h1>🌤️ Weather Prediction Results</h1>
+    </header>
+
+    <section>
+        <h2>🌍 Weather Conditions</h2>
+        <ul>
+            <li><strong>Temperature:</strong> {{ predictions['temp'] }}°C - 
+                {{ '🔥 Too Hot' if predictions['temp'] > 35 else '🌤️ Just Nice' if predictions['temp'] > 20 else '❄️ Too Cold' }}
+            </li>
+            <li><strong>Precipitation:</strong> {{ predictions['precip'] }} mm - 
+                {{ '🌧️ Heavy Rain' if predictions['precip'] > 50 else '☁️ Light Rain' if predictions['precip'] > 10 else '☀️ No Rain' }}
+            </li>
+            <li><strong>Humidity:</strong> {{ predictions['humidity'] }}% - 
+                {{ '💦 Very Humid' if predictions['humidity'] > 80 else '🌬️ Comfortable' }}
+            </li>
+            <li><strong>UV Index:</strong> {{ predictions['uvindex'] }} - 
+                {{ '☀️ High UV, Wear Sunscreen' if predictions['uvindex'] > 7 else '🕶️ Moderate UV' }}
+            </li>
+        </ul>
+
+        {% if alert %}
+            <p  style="color: red; font-weight: bold;">🚨 {{ message }}</p>
+            <p id="sc">✅ A weather alert email has been sent to {{ session['email'] }}.</p>
+        {% else %}
+            <p id="sc" style="color: green; font-weight: bold;">✔️ No extreme weather detected.</p>
+        {% endif %}
+    </section>
+
+    <a id="bh" href="{{ url_for('home') }}">🏠 Back to Home</a>
+</body>
+</html>
