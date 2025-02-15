@@ -6,41 +6,37 @@
     <title>Smart Commute Assistant</title>
     <link rel="stylesheet" href="/static/css/navbar.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
 </head>
 <body>
     <!-- Navigation Bar (Included in Every Page) -->
-    <nav id="navbar" class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <nav id="navbar" class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
+            <!-- Brand aligned to the left -->
             <a class="navbar-brand fw-bold text-primary" href="/">🚆 Smart Commute Assistant</a>
+    
+            <!-- Navbar toggle button for mobile -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+    
+            <!-- Navbar links aligned to the right -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="carpark">Carpark Availability</a></li>
+                    <li class="nav-item"><a class="nav-link" href="weather">Weather Prediction</a></li>
+                    <li class="nav-item"><a class="nav-link" href="crowd">Crowd Control</a></li>
+                    <li class="nav-item"><a class="nav-link">{{ session['username'] }}!</a></li>
                     <li class="nav-item">
-                        <a class="nav-link" href="carpark">Carpark Availability</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="weather">Weather Prediction</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="crowd">Crowd Control</a>
-                    </li>
-                    <li class="nav-item">
-                        <a style="margin-right: -10px;" class="nav-link">{{ session['username'] }}!</a>
-                    </li>
-                    <li class="nav-item">
-                        <div class="nav-link">
-                            {% if session['logged_in'] %}
-                                <a href="{{ url_for('logout') }}" onclick="clearSession()">Logout</a>
-                            {% else %}
-                                <script>window.location.href = "login";</script>
-                            {% endif %}
-                        </div>
+                        <a class="nav-link" href="{{ url_for('logout') }}" onclick="clearSession()">Logout</a>
                     </li>
                 </ul>
             </div>
         </div>
-    </nav>    
+    </nav>
+    
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

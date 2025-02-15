@@ -8,12 +8,13 @@ body {
     background: linear-gradient(to right, #e3f2fd, #bbdefb); /* Light blue gradient */
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     padding: 10px 15px;
+    color: black;
 }
 
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #0d47a1 !important;
+    color: #232424 !important;
     display: flex;
     align-items: center;
 }
@@ -21,10 +22,12 @@ body {
 .navbar-nav {
     display: flex;
     align-items: center;
+    margin-left: auto; /* Pushes nav links to the right */
 }
 
 .navbar-nav .nav-link {
-    color: #0d47a1 !important;
+    position: relative;
+    color: #232424 !important;
     font-weight: bold;
     margin-right: 15px;
     transition: color 0.3s ease-in-out;
@@ -33,6 +36,23 @@ body {
 .navbar-nav .nav-link:hover {
     color: #1976d2 !important;
 }
+
+.navbar-nav .nav-link::after {
+    content: '';
+    width: 0%;
+    height: 2px;
+    background: #0d47a1;
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: width 0.3s ease-in-out;
+}
+
+.navbar-nav .nav-link:hover::after {
+    width: 100%;
+}
+
 
 .navbar-nav .user-info {
     display: flex;
@@ -54,5 +74,24 @@ body {
 }
 
 .navbar-nav .user-info a:hover {
+    text-decoration: underline;
+}
+
+.footer {
+    background: linear-gradient(to right, #e3f2fd, #bbdefb);
+    color: #0d47a1;
+    font-weight: bold;
+    padding: 15px 0;
+    position: relative;
+    width: 100%;
+    bottom: 0;
+}
+
+.footer a {
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.footer a:hover {
     text-decoration: underline;
 }
