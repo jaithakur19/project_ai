@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, request, redirect, url_for, session, flash
+from flask import Flask, request, jsonify, render_template, request, redirect, url_for, session, flash,send_from_directory
 import threading
 import webbrowser
 import os
@@ -23,6 +23,12 @@ import random
 from database import init_db, register_user, get_user_by_username
 from datetime import timedelta
 from datetime import datetime, timedelta
+from keras.models import load_model
+from joblib import load
+import json
+import traceback
+import tensorflow as tf
+
 
 def get_access_token():
     credentials = service_account.Credentials.from_service_account_file(
@@ -145,13 +151,16 @@ def send_email_alert(email, message):
 # Load trained XGBoost models
 models = {}
 targets = ['temp', 'precip', 'humidity', 'uvindex']
-model_dir = os.path.join(os.getcwd(), 'models' 'weather_datasets')
+model_dir = os.path.join(os.getcwd(), 'models/weather_datasets')
 
 for target in targets:
     model_path = os.path.join(model_dir, f"xgboost_model_{target}.json")
     if os.path.exists(model_path):
         models[target] = xgb.Booster()
         models[target].load_model(model_path)
+
+    else:
+        print(f"⚠️ Warning: Model file not found for {target}: {model_path}")
 
        # --------------- Carpark Prediction --------------- #
 
@@ -211,6 +220,10 @@ def carpark_model():
 @app.route('/weather')
 def weather_model():
     return render_template('home_weather.html') 
+
+@app.route('/traffic', methods=['GET'])
+def serve_traffic():
+    return render_template('index_traffic.html')
 
 # Route: Home Page (Protected)
 @app.route("/")
@@ -568,6 +581,158 @@ def logout():
     session.clear()  # Completely clears the session
     flash("✅ Successfully logged out. Please log in again.", "success")
     return redirect(url_for('login'))
+
+                              # ------------------ Traffic flow ------------------ #
+# Check if we should skip XGBoost models
+USE_XGBOOST = os.getenv("SKIP_XGBOOST", "False").lower() != "true"
+
+if USE_XGBOOST:
+    import xgboost as xgb  # Import XGBoost only if needed
+# Function to load models safely
+def load_model_safely(model_path):
+    try:
+        if not os.path.exists(model_path):
+            print(f"⚠️ Model file {model_path} not found!")
+            return None
+
+        if USE_XGBOOST and model_path.endswith(".json"):  # If it's an XGBoost model
+            model = xgb.Booster()
+            model.load_model(model_path)
+        else:  # ✅ Load TensorFlow model correctly
+            model = tf.keras.models.load_model(model_path)
+
+        print(f"✅ Loaded model: {model_path}")
+        return model
+    except Exception as e:
+        print(f"⚠️ Error loading model {model_path}: {e}")
+        return None
+# Function to load camera data from JSON file
+def load_camera_data():
+    try:
+        with open("models/traffic_model/camera.json", "r") as file:
+            camera_data = json.load(file)
+        return camera_data
+    except Exception as e:
+        print(f"Error loading camera data: {e}")
+        return []  # Return an empty list if JSON loading fails
+
+
+# Function to load ML model safely
+def load_model_safely(model_path):
+    try:
+        if not os.path.exists(model_path):
+            print(f"⚠️ Model file {model_path} not found!")
+            return None
+
+        if USE_XGBOOST and model_path.endswith(".json"):  # If it's an XGBoost model
+            model = xgb.Booster()
+            model.load_model(model_path)
+        else:  # Load TensorFlow model
+            model = tf.keras.models.load_model(model_path)
+
+        print(f"✅ Loaded model: {model_path}")
+        return model
+    except Exception as e:
+        print(f"⚠️ Error loading model {model_path}: {e}")
+        return None
+
+
+# Function to predict vehicle count
+def predict_future_vehicle_count(camera_id, predicted_time):
+    model_path = f"models/traffic_model/models/camera_{camera_id}_model.h5"
+    scaler_path = "models/traffic_model/traffic_scaler.joblib"
+
+    # Load Model & Scaler
+    model = load_model_safely(model_path)
+    if model is None:
+        return None
+
+    if not os.path.exists(scaler_path):
+        print(f"⚠️ Scaler file {scaler_path} not found!")
+        return None
+
+    scaler = load(scaler_path)
+
+    # Extract time features
+    try:
+        datetime_value = datetime.strptime(predicted_time, "%Y-%m-%dT%H:%M:%S")
+        features = pd.DataFrame({
+            "month": [datetime_value.month],
+            "day": [datetime_value.day],
+            "hour": [datetime_value.hour],
+            "weekday_sin": [np.sin(2 * np.pi * datetime_value.weekday() / 7)],
+            "weekday_cos": [np.cos(2 * np.pi * datetime_value.weekday() / 7)]
+        })
+
+        # Normalize and predict
+        features = scaler.transform(features)
+        prediction = model.predict(features)
+
+        # Unload model from memory
+        del model
+        return float(prediction[0][0])  # Convert to Python float
+
+    except Exception as e:
+        print(f"⚠️ Prediction error: {e}")
+        return None
+
+
+# Route to predict traffic for a single camera
+@app.route("/predict_traffic", methods=["POST"])
+def predict_traffic():
+    try:
+        data = request.json
+        camera_id = data.get("camera_id")
+        predicted_time = data.get("predicted_time")
+
+        if not camera_id or not predicted_time:
+            return jsonify({"error": "Missing camera_id or predicted_time"}), 400
+
+        camera_data = load_camera_data()
+        camera_info = next((c for c in camera_data if c["camera_id"] == camera_id), None)
+
+        if not camera_info:
+            return jsonify({"error": "Camera not found"}), 404
+
+        predicted_vehicles = predict_future_vehicle_count(camera_id, predicted_time)
+
+        if predicted_vehicles is None:
+            return jsonify({"error": "Prediction failed"}), 500
+
+        return jsonify({
+            "camera_id": camera_id,
+            "predicted_time": predicted_time,
+            "predicted_vehicles": predicted_vehicles,
+            "lat": camera_info["lat"],
+            "lng": camera_info["lng"]
+        }), 200
+
+    except Exception as e:
+        print(f"⚠️ Error in predict_traffic: {e}")
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+# Route to predict traffic for all cameras
+@app.route("/getAllCameraPredict", methods=["GET"])
+def get_cameraList():
+    try:
+        predicted_time = request.args.get("predicted_time", default=None)
+        camera_data = load_camera_data()
+
+        for camera in camera_data:
+            camera_id = camera["camera_id"]
+            predicted_vehicles = predict_future_vehicle_count(camera_id, predicted_time)
+
+            if predicted_vehicles is not None:
+                camera.update({"predicted_vehicles": predicted_vehicles})
+
+        return jsonify(camera_data), 200
+
+    except Exception as e:
+        print("⚠️ Error in getAllCameraPredict:", str(e))
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 # ------------------ Auto Open Browser ------------------ #
 def open_browser():

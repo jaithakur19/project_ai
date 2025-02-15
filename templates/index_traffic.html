@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Map and Calendar</title>
+    <!-- Include Layui CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.8.6/dist/css/layui.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 30%;
+            padding: 20px;
+            background-color: lightgray;
+            height: 100%;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .map-container {
+            width: 70%;
+            height: 100%;
+            background-color: white;
+        }
+
+        #datepicker {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+    </style>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Layui JS -->
+    <script src="https://cdn.jsdelivr.net/npm/layui@2.8.6/dist/layui.js"></script>
+</head>
+<body>
+<div class="sidebar">
+    <label for="datepicker">Select Date and Time:</label>
+    <button class="layui-btn layui-btn-primary" onclick="toggleTrafficLayer()">Show the real-time traffic flow</button>
+    <button class="layui-btn layui-btn-primary" onclick="toggleWeatherLayer()">Show the live weather condition</button>
+    <input type="text" id="datepicker" placeholder="Select date and time"/>
+    
+</div>
+<div class="map-container">
+    <div id="map" style="height: 100%; width: 100%;"></div>
+</div>
+
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCooQHb5zUSSl7Vdl5kKTPKWk1gnlg23gk&callback=initMap"></script>
+<script>
+    let map, trafficLayer, heatmap,weatherMarkers = [];
+    let markers = []; // Array to store markers
+
+    function initMap() {
+        var mapDiv = document.getElementById('map');
+        map = new google.maps.Map(mapDiv, {
+            center: {lat: 1.3521, lng: 103.8198},
+            zoom: 12
+        });
+        // Add Traffic Layer
+        trafficLayer = new google.maps.TrafficLayer();
+                trafficLayer.setMap(map);
+
+        // Call AJAX to fetch camera list and add markers
+        let currentTime = new Date().toISOString().slice(0, 19);
+        fetchCameraData(currentTime);
+    }
+
+    function toggleTrafficLayer() {
+        if (trafficLayer.getMap()) {
+            trafficLayer.setMap(null); // Remove traffic layer
+        } else {
+            trafficLayer.setMap(map); // Add traffic layer
+        }
+    }
+    function toggleWeatherLayer() {
+        if (weatherMarkers.length > 0) {
+            clearWeatherMarkers();
+            return;
+        }
+
+        const openWeatherMapApiKey = "1b4423dbec491ad86e52b329afcd26ae"; // Replace with your API key
+        const lat = 1.3521; // Singapore latitude
+        const lon = 103.8198; // Singapore longitude
+
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${openWeatherMapApiKey}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Weather data:", data);
+                addWeatherMarker(data);
+            })
+            .catch(error => console.error("Error fetching weather data:", error));
+    }
+
+    function addWeatherMarker(data) {
+    const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+
+    // Convert Unix timestamps to readable time for Sunrise & Sunset
+    const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+    const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+
+    var marker = new google.maps.Marker({
+        position: { lat: data.coord.lat, lng: data.coord.lon },
+        map: map,
+        icon: {
+            url: iconUrl,
+            scaledSize: new google.maps.Size(50, 50)
+        },
+        title: `Weather: ${data.weather[0].description}`
+    });
+
+    var infoWindow = new google.maps.InfoWindow({
+        content: `
+            <div style="font-size:14px;">
+                <b>🌡️ Temperature:</b> ${(data.main.temp - 273.15).toFixed(2)}°C <br>
+                <b>🥶 Feels Like:</b> ${(data.main.feels_like - 273.15).toFixed(2)}°C <br>
+                <b>💧 Humidity:</b> ${data.main.humidity}% <br>
+                <b>💨 Wind:</b> ${data.wind.speed} m/s, ${getWindDirection(data.wind.deg)} <br>
+                <b>🌍 Pressure:</b> ${data.main.pressure} hPa <br>
+                <b>🌅 Sunrise:</b> ${sunrise} <br>
+                <b>🌇 Sunset:</b> ${sunset} <br>
+                <b>☁️ Condition:</b> ${data.weather[0].description} <br>
+            </div>
+        `
+    });
+
+    marker.addListener('click', function () {
+        infoWindow.open(map, marker);
+    });
+
+    weatherMarkers.push(marker);
+}
+
+// 🔥 Function to Convert Wind Degree to Direction (N, NE, E, etc.)
+function getWindDirection(degrees) {
+    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    return directions[Math.round(degrees / 45) % 8];
+}
+
+    function clearWeatherMarkers() {
+        for (var i = 0; i < weatherMarkers.length; i++) {
+            weatherMarkers[i].setMap(null);
+        }
+        weatherMarkers = [];
+    }
+    function fetchCameraData(queryDate) {
+        $.ajax({
+            url: '/getAllCameraPredict',
+            method: 'GET',
+            data: {predicted_time: queryDate},
+            success: function (data) {
+                // Clear existing markers before adding new ones
+                clearMarkers();
+                data.forEach(function (camera) {
+                    addCameraMarker(map, Number.parseFloat(camera.lat), Number.parseFloat(camera.lng), Number.parseInt(camera.predicted_vehicles));
+                });
+            },
+            error: function (error) {
+                console.error('Error fetching camera data:', error);
+            }
+        });
+    }
+
+    function addCameraMarker(map, lat, lng, carNum) {
+        const cameraIcon = {
+            url: 'https://upload.wikimedia.org/wikipedia/commons/a/aa/Camera_Icon.jpg',
+            scaledSize: new google.maps.Size(20, 20),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(20, 20),
+        };
+
+        var marker = new google.maps.Marker({
+            position: {lat: lat, lng: lng},
+            map: map,
+            icon: cameraIcon,
+            title: 'Click to toggle the label'
+        });
+
+        var infoWindow = new google.maps.InfoWindow({
+            content: `${carNum} cars`
+        });
+
+        infoWindow.open(map, marker);
+
+        marker.addListener('click', function () {
+            if (infoWindow.getMap()) {
+                infoWindow.close();
+            } else {
+                infoWindow.open(map, marker);
+            }
+        });
+
+        // Add marker to the array
+        markers.push(marker);
+    }
+
+    // Function to clear all markers from the map
+    function clearMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(null); // Remove marker from map
+        }
+        markers = []; // Reset markers array
+    }
+
+    // 🔥 **Layui Date and Time Picker: Keeps the calendar open after selection**
+    layui.use('laydate', function () {
+        var laydate = layui.laydate;
+
+        function renderDatePicker() {
+            laydate.render({
+                elem: '#datepicker',      // Element to bind the date picker
+                type: 'datetime',         // Select date and time
+                format: 'yyyy-MM-dd HH:mm:ss',  // Date and time format
+                show: true,               // Show calendar by default
+                trigger: 'click',         // Activate on click
+                lang: 'en',               // Force the language to English
+                done: function (value, date, endDate) {
+                    console.log('Selected date and time:', value);
+                    let currentTime = new Date(value).toISOString().slice(0, 19);
+                    fetchCameraData(currentTime);
+                    // After selection, reopen the calendar
+                    setTimeout(renderDatePicker, 100);
+                }
+            });
+        }
+
+        // Initialize the date picker
+        renderDatePicker();
+    });
+
+</script>
+</body>
+{% extends "base.html" %}
+
+</html>
