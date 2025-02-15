@@ -206,12 +206,16 @@ def crowd_model():
 
 @app.route('/carpark')
 def carpark_model():
-    return render_template('index_carpark.html') 
+    return render_template('index_carpark.html')
+
+@app.route('/weather')
+def weather_model():
+    return render_template('home_weather.html') 
 
 # Route: Home Page (Protected)
 @app.route("/")
 def home():
-    return render_template("home_weather.html")
+    return render_template("main_home.html")
 
 app.permanent_session_lifetime = timedelta(minutes=15)
 
