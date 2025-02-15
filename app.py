@@ -28,6 +28,7 @@ from joblib import load
 import json
 import traceback
 import tensorflow as tf
+import zipfile
 
 
 def get_access_token():
@@ -165,7 +166,13 @@ for target in targets:
        # --------------- Carpark Prediction --------------- #
 
 # Load the dataset
-data_df_carpark = pd.read_csv('models/carpark_datasets/filtered_processed_carpark_availability.csv')
+zip_path = 'models/carpark_datasets/filtered_processed_carpark_availability.zip'  # Path to your ZIP file
+csv_filename = 'filtered_processed_carpark_availability.csv'  # Name of the CSV inside the ZIP
+
+# Open the ZIP file and read the CSV
+with zipfile.ZipFile(zip_path, 'r') as z:
+    with z.open(csv_filename) as f:
+        data_df_carpark = pd.read_csv(f)
 
 # Load the carpark information with X, Y coordinates
 carpark_info_df_carpark = pd.read_csv('models/carpark_datasets/filtered_HDB_Carpark_Information.csv')
