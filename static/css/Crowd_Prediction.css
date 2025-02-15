@@ -126,7 +126,7 @@ margin-left: auto;
 }
 
 .controls button:hover {
-    background-color: #0056b3;
+    background-color: #003d80;
 }
 
 .pdf-container {
@@ -253,7 +253,7 @@ z-index: 1000;
 }
 
 .chat-icon:hover {
-background-color: #003c80;
+background-color: #003d80;
 transform: scale(1.05);
 }
 
@@ -352,6 +352,6 @@ color: black;
 }
 
 .scroll-to-top:hover {
-    background-color: #003c80;
+    background-color: #003d80;
     transform: scale(1.05);
     }

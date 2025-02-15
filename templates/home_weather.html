@@ -27,10 +27,6 @@
             }
         </script>        
     </header>
-
-    <section>
-        <h2>Enter Details for Weather Prediction</h2>
-
         <!-- Weather Prediction Form (Now using action="/predict") -->
         <form action="predict" method="POST">
             <input type="hidden" id="email" name="email" value="{{ session['email'] }}">
@@ -44,9 +40,8 @@
             <label for="time">⏰ Select Time:</label>
             <input type="time" id="time" name="time" required>
 
-            <button type="submit">📊 Predict Weather</button>
+            <button type="submit">Predict Weather</button>
         </form>
-    </section>
 </body>
 {% extends "base.html" %}
 

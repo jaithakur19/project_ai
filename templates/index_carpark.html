@@ -5,17 +5,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_carpark.css') }}">
 </head>
 <body>
-    <h1>Predict Carpark Availability</h1>
+    <h1>🚗 Predict Carpark Availability</h1>
     <form id="predictionForm_carpark">
-        <label for="address_carpark">Search Address:</label>
+        <label for="address_carpark">📍 Search Address:</label>
         <input type="text" id="address_carpark" name="address_carpark" autocomplete="off">
-        <div id="suggestions_carpark"></div><br><br>
+        <div id="suggestions_carpark"></div>
 
-        <label for="date_carpark">Date (DD-MM-YYYY):</label>
-        <input type="date" id="date_carpark" name="date_carpark" required><br><br>
+        <label for="date_carpark">📅 Date (DD-MM-YYYY):</label>
+        <input type="date" id="date_carpark" name="date_carpark" required>
 
-        <label for="time_carpark">Time (HH:MM):</label>
-        <input type="time" id="time_carpark" name="time_carpark" required><br><br>
+        <label for="time_carpark">⏰ Time (HH:MM):</label>
+        <input type="time" id="time_carpark" name="time_carpark" required>
 
         <button type="submit">Predict</button>
     </form>
