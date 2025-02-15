@@ -741,6 +741,115 @@ def get_cameraList():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+# ------------------ Profile ------------------ #
+
+# ------------------ Database Helper Functions ------------------ #
+
+def get_user_by_username(username):
+    """Retrieve user details from the database by username"""
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+    user = cursor.fetchone()
+    conn.close()
+    return user  # Returns (id, fullname, username, email, password_hash)
+
+def update_username(current_username, new_username):
+    """Update the username in the database"""
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET username = ? WHERE username = ?", (new_username, current_username))
+    conn.commit()
+    conn.close()
+
+def update_password(username, new_password_hash):
+    """Update the password hash in the database"""
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET password = ? WHERE username = ?", (new_password_hash, username))
+    conn.commit()
+    conn.close()
+
+def delete_user(username):
+    """Delete a user from the database"""
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM users WHERE username = ?", (username,))
+    conn.commit()
+    conn.close()
+
+# ---------------------- Routes ---------------------- #
+
+@app.route('/profile')
+def profile():
+    """Render profile page if logged in"""
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    return render_template('profile.html')
+
+# ------------------ Change Username ------------------ #
+
+@app.route('/change_username', methods=['POST'])
+def change_username():
+    """Handle username change request"""
+    if 'logged_in' not in session:
+        return jsonify({"status": "error", "message": "You must be logged in!"}), 401
+
+    new_username = request.form['new_username'].strip()
+    current_username = session['username']
+
+    if not new_username:
+        return jsonify({"status": "error", "message": "Username cannot be empty!"})
+
+    existing_user = get_user_by_username(new_username)
+    if existing_user:
+        return jsonify({"status": "error", "message": "Username already taken!"})
+
+    update_username(current_username, new_username)
+    session['username'] = new_username  # Update session
+
+    return jsonify({"status": "success", "message": "Username updated successfully!", "new_username": new_username})
+
+# ------------------ Change Password ------------------ #
+
+@app.route('/change_password', methods=['POST'])
+def change_password():
+    """Handle password change request"""
+    if 'logged_in' not in session:
+        return jsonify({"status": "error", "message": "Unauthorized. Please log in again."}), 401
+
+    current_password = request.form.get('current_password', '')
+    new_password = request.form.get('new_password', '')
+    username = session['username']
+
+    user = get_user_by_username(username)
+    if not user:
+        return jsonify({"status": "error", "message": "User not found!"}), 400
+
+    stored_password_hash = user[4]  # Assuming password is in column index 4
+    if not check_password_hash(stored_password_hash, current_password):
+        return jsonify({"status": "error", "message": "Current password is incorrect!"}), 400
+
+    # Hash the new password before storing
+    new_password_hashed = generate_password_hash(new_password, method='pbkdf2:sha256')
+    update_password(username, new_password_hashed)
+
+    return jsonify({"status": "success", "message": "Password updated successfully!"})
+
+# ------------------ Delete Account ------------------ #
+
+@app.route('/delete_account', methods=['POST'])
+def delete_account():
+    """Handle account deletion request"""
+    if 'logged_in' not in session:
+        return jsonify({"status": "error", "message": "Unauthorized. Please log in again."}), 401
+
+    username = session['username']
+    delete_user(username)
+    session.clear()  # Logout after deleting the account
+
+    return jsonify({"status": "success", "message": "Your account has been deleted. Redirecting to login page."})
+
 # ------------------ Auto Open Browser ------------------ #
 def open_browser():
     webbrowser.open_new("http://127.0.0.1:5000/")

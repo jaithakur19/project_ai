@@ -27,7 +27,7 @@
                     <li class="nav-item"><a class="nav-link" href="weather">Weather Prediction</a></li>
                     <li class="nav-item"><a class="nav-link" href="crowd">Crowd Control</a></li>
                     <li class="nav-item"><a class="nav-link" href="traffic">Traffic Condition</a></li>
-                    <li class="nav-item"><a class="nav-link">{{ session['username'] }}!</a></li>
+                    <li class="nav-item"><a class="nav-link" href="profile">{{ session['username'] }}!</a></li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}" onclick="clearSession()">Logout</a>
                     </li>
@@ -35,7 +35,7 @@
             </div>
         </div>
     </nav>
-    
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

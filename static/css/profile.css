@@ -1,0 +1,118 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc; /* Light blue-gray for a modern look */
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    background-color: white;
+    padding: 30px;
+    margin: 50px auto;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    text-align: left;
+}
+
+h2 {
+    font-size: 22px;
+    font-weight: bold;
+    color: #0d47a1;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-info div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.profile-info strong {
+    color: #333;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-top: 5px;
+    box-sizing: border-box;
+}
+
+form button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #0d47a1;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1976d2;
+}
+
+.btn-secondary {
+    background-color: #616161;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #424242;
+}
+
+.btn-danger {
+    background-color: #d32f2f;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #b71c1c;
+}
+
+#password-display {
+    width: auto;
+    font-size: 14px;
+    padding: 6px;
+    border: none;
+    background: transparent;
+    font-weight: bold;
+}
+
+#toggle-password {
+    background-color: #1565c0;
+    color: white;
+    font-size: 12px;
+    border-radius: 5px;
+    padding: 4px 8px;
+    margin-left: 10px;
+}
+
+#toggle-password:hover {
+    background-color: #0d47a1;
+}
+
+form {
+    display: none;
+    margin-top: 15px;
+}
+
+/* Ensure buttons have consistent spacing */
+.profile-info button {
+    margin-left: 10px;
+}
