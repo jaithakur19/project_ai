@@ -109,7 +109,7 @@ function displayStatusCard(station, hour, probabilities) {
             </div>
             <h2>${lineName} Line</h2>
             <div class="search-container">
-                <input type="text" class="lineSearchBar" id="searchBar-${prefix}" placeholder="Search for a station..." onkeyup="filterStations('${prefix}')">
+                <input type="text" class="lineSearchBar" id="searchBar-${prefix}" placeholder="Search for a station... (e.g Dhoby Ghaut)" onkeyup="filterStations('${prefix}')">
             </div>
             <div class="line-cards"></div>
         `;

@@ -427,7 +427,7 @@ def get_station_context(station, day, hour, crowd_level=None):
         else:
             prob_response = f"The chance of '{full_word_crowd_level}' happening is very high. It usually happens."
 
-    response = f"{prob_response} To elaborate, {station_name} ({station_code.upper()}) Station is {reasoning.lower()}. Hence, the crowd level around this time is usually {full_word_probable_crowd_level}."
+    response = f"{prob_response} To elaborate, {station_name} ({station_code.upper()}) Station is {reasoning.lower()} Hence, the crowd level around this time is usually {full_word_probable_crowd_level}."
     return response
 
 DIALOGFLOW_URL = "https://dialogflow.googleapis.com/v2/projects/crowd-explanation-bot-gych/agent/sessions/asdwdadsgaoiwfhaiwfhiwhwhabsf:detectIntent"
